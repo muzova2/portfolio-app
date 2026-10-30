@@ -3638,7 +3638,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const dateRu = (iso) => iso ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '';
 
   const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  const state = { data: null, denied: null, tab: store.get('tab', 'overview'), ver: store.get('ver', 'Фонды'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
+  const state = { data: null, denied: null, tab: store.get('tab', 'overview'), ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
   // Тест открывается ссылкой …/portfolio-app?mode=test (Telegram затирает #hash своими данными) или start_param=test
   const startTest = new URLSearchParams(location.search).get('mode') === 'test' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'test');
   if (startTest) state.tab = 'test';
@@ -3806,7 +3806,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     const el = document.getElementById('ver');
     if (el) el.querySelectorAll('button').forEach((b) => b.onclick = () => { state.ver = b.dataset.v; store.set('ver', state.ver); render(); });
   }
-  const V = (p) => p.versions[state.ver] || p.versions['Фонды'] || p.versions['Полная'] || Object.values(p.versions)[0];
+  const V = (p) => p.versions[state.ver] || p.versions['Полная'] || p.versions['Фонды'] || Object.values(p.versions)[0];
   const fallbackNote = (p) => !p.versions[state.ver] && Object.keys(p.versions).length ? `<div class="muted" style="margin-top:6px">Версия «${state.ver === 'Полная' ? 'Полная' : 'Фонды'}» пока не опубликована — показана «${Object.keys(p.versions)[0]}»</div>` : '';
 
   function render() {
@@ -3916,7 +3916,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
       </div>`).join('')}
       <div class="pos-item row"><span>Кэш</span><span class="num"><b>${fmt(v.cashWeight, 1)}%</b> <span class="muted">/ ${fmt(v.cashTarget, 0)}%</span></span></div>
       <p class="muted" style="margin:8px 0 0">Жирным — доля сейчас, серым — целевая. Метка «Тест» — нужен тест у брокера для неквалов.</p></div>`;
-    const recent = state.data.trades.filter((t) => t.pf === p.key && t.ver === (p.versions[state.ver] ? state.ver : (p.versions['Фонды'] ? 'Фонды' : 'Полная'))).slice(0, 5);
+    const recent = state.data.trades.filter((t) => t.pf === p.key && t.ver === (p.versions[state.ver] ? state.ver : (p.versions['Полная'] ? 'Полная' : 'Фонды'))).slice(0, 5);
     if (recent.length) h += `<div class="card"><div class="row"><h2 style="margin:0">Последние сделки</h2><a href="#" data-go="trades">все</a></div>${tradeList(recent)}</div>`;
     return h;
   }
