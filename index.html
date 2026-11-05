@@ -3682,7 +3682,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const dateRu = (iso) => iso ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '';
 
   const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  const state = { data: null, denied: null, tab: 'home', mine: null, mineSrc: '', seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
+  const state = { data: null, denied: null, tab: 'home', mine: [], notifyOn: true, notifyDirty: false, seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
   // Тест открывается ссылкой …/portfolio-app?mode=test (Telegram затирает #hash своими данными) или start_param=test
   const startTest = new URLSearchParams(location.search).get('mode') === 'test' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'test');
   if (startTest) state.tab = 'test';
@@ -3805,7 +3805,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     let score = 0; const notes = [];
     QT.forEach((q, i) => { const o = q.o[qt.answers[i]]; if (i >= 2) score += o[1]; if (o[2] && !notes.includes(o[2])) notes.push(o[2]); });
     const type = QT_TYPES.find((t) => score >= t.min && score <= t.max) || QT_TYPES[0];
-    if (state.mineSrc !== 'me' && FEED_PFS[type.lvl - 1] && state.mine !== FEED_PFS[type.lvl - 1]) setMine(FEED_PFS[type.lvl - 1], 'test');
+    if (state.data && FEED_PFS[type.lvl - 1] && !state.mine.length) saveNotify([FEED_PFS[type.lvl - 1]], state.notifyOn);
     const member = !!state.data;
     let h = notes.length ? `<div class="card"><h2>Прежде чем инвестировать</h2>${notes.map((n) => `<p>${QT_NOTES[n]}</p>`).join('')}</div>` : '';
     h += `<div class="card"><div class="muted">Ваш тип отношения к риску</div><div class="big" style="margin:4px 0">${type.name}</div><p style="margin:0">${type.text}</p>
@@ -3891,7 +3891,16 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     });
   }
   function prefSet_(k, v) { store.set('pref:' + k + ':' + UID, String(v)); if (ds) try { ds.setItem('pref:' + k, String(v), () => {}); } catch (e) {} }
-  function setMine(k, src) { state.mine = k; state.mineSrc = src; prefSet_('mine', k); prefSet_('mineSrc', src); }
+  function saveNotify(pf, on) {
+    state.mine = pf; state.notifyOn = on; state.notifyDirty = true;
+    if (state.data) state.data.notify = { pf, on };
+    if (API_URL) fetch(`${API_URL}?action=notify&pf=${encodeURIComponent(pf.join(','))}&on=${on ? 1 : 0}&initData=${encodeURIComponent(tg ? tg.initData : '')}`).catch(() => {});
+  }
+  function toggleMine(k) {
+    const m = state.mine.includes(k) ? state.mine.filter((x) => x !== k) : state.mine.concat(k);
+    saveNotify(FEED_PFS.filter((x) => m.includes(x)), state.notifyOn);
+  }
+  const hits = (pf) => !state.mine.length || pf.some((x) => state.mine.includes(x));
 
   // новое = опубликовано после последнего захода в ленту (при первом заходе — за последнюю неделю)
   function unreadIds() {
@@ -3917,42 +3926,47 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   }
 
   function mineCard() {
-    const d = state.data;
-    const p = state.mine && d.portfolios.find((x) => x.key === state.mine);
-    const sw = `<div class="seg" style="margin:0">${d.portfolios.map((x) => `<button class="${p && x.key === p.key ? 'on' : ''}" data-mine="${esc(x.key)}">${esc(x.title)}</button>`).join('')}</div>`;
-    if (!p) return `<div class="card"><h2>Какой портфель ваш?</h2><p class="muted" style="margin-top:0">Выберите сами или пройдите тест: результат появится здесь.</p>${sw}
-      <div style="margin-top:10px"><button class="btn ghost" data-go="test">Пройти тест «Какой вы инвестор»</button></div></div>`;
-    const v = V(p), b = v && (v.bench || p.bench);
-    return `<div class="card"><div class="row" style="align-items:baseline"><h2 style="margin:0">«${esc(p.title)}»</h2><span class="muted">${state.mineSrc === 'test' ? 'по тесту' : 'выбран вами'}</span></div>
-      <div class="tiles" style="margin:10px 0">
-        <div class="tile" style="background:var(--bg2)"><div class="muted">С запуска${v && (v.start || p.start) ? ' (' + dateRu(v.start || p.start) + ')' : ''}</div><div class="v ${v ? cls(v.returnPct) : ''}">${v && v.started ? pct(v.returnPct) : '—'}</div></div>
-        <div class="tile" style="background:var(--bg2)"><div class="muted">Бенчмарк${p.benchLabel ? ' · ' + esc(p.benchLabel) : ''}</div><div class="v ${b ? cls(b.returnPct) : ''}">${b && v.started ? pct(b.returnPct) : '—'}</div></div>
-      </div>
-      <div class="row">${sw}<button class="btn" data-go="pf:${esc(p.key)}">Состав</button></div>
-      <div class="muted" style="margin-top:8px">${state.ver === 'Фонды' ? 'Версия «Фонды»' : 'Полная версия'}, ${esc(document.getElementById('upd').textContent)}</div></div>`;
+    const d = state.data, m = state.mine;
+    const chips = `<div class="chips small" style="margin:0">${d.portfolios.map((x) => `<button class="chip ${m.includes(x.key) ? 'on' : ''}" data-mine="${esc(x.key)}">${m.includes(x.key) ? '✓ ' : ''}${esc(x.title)}</button>`).join('')}</div>`;
+    const note = state.notifyOn === false ? 'Уведомления в боте выключены.' : m.length ? 'Бот пишет о сделках по выбранным портфелям, сводки и отчёты по всем.' : 'Бот пишет обо всех публикациях. Выберите свои портфели, чтобы получать сделки только по ним.';
+    let h = `<div class="card"><div class="row" style="align-items:baseline"><h2 style="margin:0">Мои портфели</h2><span class="muted">можно несколько</span></div>
+      <div style="margin-top:10px">${chips}</div>
+      <p class="muted" style="margin:10px 0 8px">${note}</p>
+      <div class="row" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn ghost" data-notify="1">${state.notifyOn === false ? '🔔 Включить уведомления' : '🔕 Выключить уведомления'}</button>${m.length ? '' : '<button class="btn ghost" data-go="test">Пройти тест</button>'}</div></div>`;
+    for (const k of m) {
+      const p = d.portfolios.find((x) => x.key === k); if (!p) continue;
+      const v = V(p), b = v && (v.bench || p.bench);
+      h += `<div class="card click" data-go="pf:${esc(p.key)}"><div class="row" style="align-items:baseline"><h2 style="margin:0">«${esc(p.title)}»</h2><span class="muted">${state.ver === 'Фонды' ? 'версия «Фонды»' : 'полная версия'}</span></div>
+        <div class="tiles" style="margin:10px 0 0">
+          <div class="tile" style="background:var(--bg2)"><div class="muted">С запуска${v && (v.start || p.start) ? ' (' + dateRu(v.start || p.start) + ')' : ''}</div><div class="v ${v ? cls(v.returnPct) : ''}">${v && v.started ? pct(v.returnPct) : '—'}</div></div>
+          <div class="tile" style="background:var(--bg2)"><div class="muted">Бенчмарк${p.benchLabel ? ' · ' + esc(p.benchLabel) : ''}</div><div class="v ${b ? cls(b.returnPct) : ''}">${b && v.started ? pct(b.returnPct) : '—'}</div></div>
+        </div></div>`;
+    }
+    return h;
   }
 
   function homeView() {
     const d = state.data, f = feedOf(), mine = state.mine;
+    const mineLabel = mine.map((x) => '«' + esc(x) + '»').join(', ');
     const name = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name;
-    const fresh = f.filter((x) => !mine || x.pf.includes(mine)).slice(0, 3);
+    const fresh = f.filter((x) => hits(x.pf)).slice(0, 3);
     const unread = unreadIds().size;
     const today = todayIso();
-    const evs = (d.events || []).filter((e) => !mine || e.pf.includes(mine)).slice(0, 4);
+    const evs = (d.events || []).filter((e) => hits(e.pf)).slice(0, 4);
     let h = name ? `<p class="muted" style="margin:0 2px 8px">Добрый день, ${esc(name)}</p>` : '';
-    h += `<h3 style="margin-top:0">Мой портфель</h3>` + mineCard();
+    h += mineCard();
     if (fresh.length) {
       h += `<h3>Что нового${unread ? ' · ' + unread + ' с прошлого раза' : ''}</h3>` + fresh.map((x) => `<button class="card newsbtn" data-jump="${x.id}">
         <span class="post-meta" style="margin:0"><span class="kind ${esc(x.kind)}">${esc(KIND[x.kind] || x.kind)}</span><span>${dayMon(x.date)}</span>${isNew(x) ? '<span class="newmark">● новое</span>' : ''}</span>
         <b style="font-size:15px">${esc(x.title)}</b></button>`).join('') + `<button class="btn ghost" data-go="feed" style="margin-bottom:10px">Вся лента</button>`;
     }
     if (evs.length) {
-      h += `<h3>Ближайшие события${mine ? ' по «' + esc(mine) + '»' : ''}</h3><div class="card">` + evs.map((e) => `<div class="ev ${e.d === today ? 'today' : ''}">
+      h += `<h3>Ближайшие события${mine.length ? ' по ' + mineLabel : ''}</h3><div class="card">` + evs.map((e) => `<div class="ev ${e.d === today ? 'today' : ''}">
         <div class="d">${+e.d.slice(8, 10)}.${e.d.slice(5, 7)}<small>${e.d === today ? 'сегодня' : WD[new Date(e.d + 'T12:00:00').getDay()]}</small></div><div>${esc(e.t)}</div></div>`).join('') + '</div>';
     }
     h += `<h3>Быстро</h3><div class="quick">
       <button data-tglink="${GROUP_LINK + ASK_TOPIC}"><b>Задать вопрос</b><span>в теме «Обсуждение»</span></button>
-      <button data-calc="${mine ? esc(mine) : ''}"><b>Калькулятор</b><span>лоты под вашу сумму</span></button>
+      <button data-calc="${mine.length ? esc(mine[0]) : ''}"><b>Калькулятор</b><span>лоты под вашу сумму</span></button>
       <button data-rules="1"><b>Как всё устроено</b><span>правила портфелей</span></button>
       <button data-go="test"><b>Пройти тест</b><span>подобрать портфель</span></button></div>`;
     return h;
@@ -3971,7 +3985,8 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   }
 
   function bindFeed() {
-    $app.querySelectorAll('[data-mine]').forEach((el) => el.onclick = () => { setMine(el.dataset.mine, 'me'); render(); });
+    $app.querySelectorAll('[data-mine]').forEach((el) => el.onclick = () => { toggleMine(el.dataset.mine); render(); });
+    $app.querySelectorAll('[data-notify]').forEach((el) => el.onclick = () => { saveNotify(state.mine, state.notifyOn === false); render(); });
     $app.querySelectorAll('[data-kind]').forEach((el) => el.onclick = () => { state.kind = el.dataset.kind; render(); });
     $app.querySelectorAll('[data-pff]').forEach((el) => el.onclick = () => { state.pff = el.dataset.pff; render(); });
     $app.querySelectorAll('[data-open]').forEach((el) => el.onclick = () => { const id = +el.dataset.open; state.open[id] = !state.open[id]; render(); });
@@ -3985,6 +4000,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 
   function render() {
     const d = state.data;
+    if (d.notify && !state.notifyDirty) { state.mine = (d.notify.pf || []).filter((x) => FEED_PFS.includes(x)); state.notifyOn = d.notify.on !== false; }
     document.getElementById('upd').textContent = 'обновлено ' + new Date(d.updatedAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     renderTabs();
     let html = '';
@@ -4157,8 +4173,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   }
 
   if (startTest) { $app.innerHTML = testView(); bindTest(); } // тест виден сразу, пока грузятся данные
-  Promise.all([prefGet_('mine'), prefGet_('mineSrc'), prefGet_('seen')]).then(([m, src, seen]) => {
-    if (m && !state.mine) { state.mine = m; state.mineSrc = src || 'me'; }
+  prefGet_('seen').then((seen) => {
     if (seen && state.seen == null) state.seen = Number(seen);
     if (state.data) render();
   });
