@@ -3620,6 +3620,8 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   .quick span { font-size: 12px; color: var(--hint); }
   .newsbtn { display: flex; flex-direction: column; gap: 4px; width: 100%; border: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
   .card .seg, .card .btn.ghost { background: var(--bg2); }
+  .backlink { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; color: var(--link); font: inherit; font-size: 15px; padding: 2px 0 10px; cursor: pointer; }
+  .backlink:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
   .grp-h { display: flex; align-items: center; gap: 8px; padding: 16px 0 4px; font-size: 15px; }
   .grp-h .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
   .grp-h .num { margin-left: auto; font-size: 13px; }
@@ -3641,6 +3643,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   </header>
   <nav class="tabs bottom" id="tabs"></nav>
   <main id="app"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></main>
+  <p class="note" style="margin:16px 0 -8px">Версия приложения: 14</p>
   <p class="note" id="disclaimer">Информация предоставляется одинаково всем участникам и не является индивидуальной инвестиционной рекомендацией. Модельные портфели не учитывают ваши цели, сроки и финансовое положение. Доходность в прошлом не гарантирует доходности в будущем. Результаты рассчитаны по ценам на момент публикации сделок, до налогов; котировки Московской биржи с задержкой до 15 минут.<br><a href="https://bulkacapital.ru/politic" target="_blank" rel="noopener" onclick="try { if (window.Telegram && Telegram.WebApp.initData) { Telegram.WebApp.openLink(this.href); return false; } } catch (e) {}">Политика конфиденциальности</a></p>
 </div>
 <script>
@@ -3665,6 +3668,23 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 <script>
 (() => {
   window.__pf = 1;
+  // Номер сборки. При каждой выкладке увеличивать здесь и в version.json рядом с index.html (05.11.2026).
+  const APP_VER = 14;
+  // Если на сервере сборка новее, перезагружаемся с новым адресом: так обходим кэш Telegram. Хэш (данные Telegram) сохраняется.
+  (function checkVersion() {
+    try {
+      if (!/github\.io$/.test(location.hostname)) return;
+      fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).then((j) => {
+        if (!j || !(j.v > APP_VER)) return;
+        const k = 'reloaded:' + j.v;
+        try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1'); } catch (e) {}
+        const q = new URLSearchParams(location.search);
+        if (Number(q.get('v')) >= j.v) return; // уже открыт адрес новой сборки, второй раз не перезагружаем
+        q.set('v', j.v);
+        location.replace(location.pathname + '?' + q.toString() + location.hash);
+      }).catch(() => {});
+    } catch (e) {}
+  })();
   // Адрес веб-приложения Google Apps Script (…/exec). Пусто — если страницу отдаёт Node-сервер.
   const API_URL = 'https://script.google.com/macros/s/AKfycbwnGrrvAfBTOVG9mgwy1tUf9G1n7zBie2rqnsPjbtoSrqFFsCNnUgFbcG3hRYul-KUHwQ/exec'.startsWith('__') ? '' : 'https://script.google.com/macros/s/AKfycbwnGrrvAfBTOVG9mgwy1tUf9G1n7zBie2rqnsPjbtoSrqFFsCNnUgFbcG3hRYul-KUHwQ/exec';
   const tg = window.Telegram && window.Telegram.WebApp;
@@ -3691,7 +3711,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const dateRu = (iso) => iso ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '';
 
   const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  const state = { data: null, denied: null, tab: 'home', mine: [], notifyOn: true, notifyDirty: false, closed: {}, seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
+  const state = { data: null, denied: null, tab: 'home', mine: [], notifyOn: true, notifyDirty: false, closed: {}, hist: [], seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
   // Тест открывается ссылкой …/portfolio-app?mode=test (Telegram затирает #hash своими данными) или start_param=test
   const startTest = new URLSearchParams(location.search).get('mode') === 'test' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'test');
   if (startTest) state.tab = 'test';
@@ -3843,7 +3863,28 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     const sub = document.getElementById('qt-sub'); if (sub) sub.onclick = () => { if (tg && tg.initData) tg.close(); else location.href = 'https://t.me/BulkaPortfolioBot'; };
   }
 
-  function setTab(t) { if (t === 'feed') markSeen(); state.tab = t; render(); window.scrollTo(0, 0); if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
+  // push = переход «вглубь» (из списка в портфель и т.п.): запоминаем экран и прокрутку, чтобы вернуться
+  function setTab(t, push) {
+    if (push && t !== state.tab) state.hist.push({ tab: state.tab, y: window.scrollY });
+    if (!push) state.hist = [];
+    if (t === 'feed') markSeen();
+    state.tab = t; render(); window.scrollTo(0, 0); updateBack();
+    if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+  }
+  function goBack() {
+    const prev = state.hist.pop(); if (!prev) return;
+    state.tab = prev.tab; render(); window.scrollTo(0, prev.y); updateBack();
+  }
+  const TAB_NAMES = { home: 'Главная', feed: 'Лента', overview: 'Портфели', trades: 'Сделки', calc: 'Калькулятор', test: 'Тест' };
+  const tabName = (t) => TAB_NAMES[t] || (t.startsWith('pf:') ? '«' + t.slice(3) + '»' : 'Назад');
+  // кнопка «назад» Telegram в шапке окна (на Android ещё и системная «назад»)
+  function updateBack() {
+    try {
+      if (!tg || !tg.BackButton || !tg.isVersionAtLeast || !tg.isVersionAtLeast('6.1')) return;
+      if (state.hist.length) tg.BackButton.show(); else tg.BackButton.hide();
+    } catch (e) {}
+  }
+  try { if (tg && tg.BackButton && tg.isVersionAtLeast && tg.isVersionAtLeast('6.1')) tg.BackButton.onClick(goBack); } catch (e) {}
 
   const ICONS = {
     home: '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
@@ -4005,9 +4046,9 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     $app.querySelectorAll('[data-pff]').forEach((el) => el.onclick = () => { state.pff = el.dataset.pff; render(); });
     $app.querySelectorAll('[data-open]').forEach((el) => el.onclick = () => { const id = +el.dataset.open; state.open[id] = !state.open[id]; render(); });
     $app.querySelectorAll('[data-tglink]').forEach((el) => el.onclick = () => openTg(el.dataset.tglink));
-    $app.querySelectorAll('[data-rules]').forEach((el) => el.onclick = () => { state.kind = 'rules'; state.pff = 'all'; setTab('feed'); });
+    $app.querySelectorAll('[data-rules]').forEach((el) => el.onclick = () => { state.kind = 'rules'; state.pff = 'all'; setTab('feed', true); });
     $app.querySelectorAll('[data-jump]').forEach((el) => el.onclick = () => {
-      const id = +el.dataset.jump; state.kind = 'all'; state.pff = 'all'; state.open[id] = true; setTab('feed');
+      const id = +el.dataset.jump; state.kind = 'all'; state.pff = 'all'; state.open[id] = true; setTab('feed', true);
       const b = $app.querySelector(`[data-open="${id}"]`); if (b) b.closest('.card').scrollIntoView({ block: 'start' });
     });
   }
@@ -4017,7 +4058,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     if (d.notify && !state.notifyDirty) { state.mine = (d.notify.pf || []).filter((x) => FEED_PFS.includes(x)); state.notifyOn = d.notify.on !== false; }
     document.getElementById('upd').textContent = 'обновлено ' + new Date(d.updatedAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     renderTabs();
-    let html = '';
+    let html = state.hist.length ? `<button class="backlink" data-back="1">← ${esc(tabName(state.hist[state.hist.length - 1].tab))}</button>` : '';
     if (d.admin && d.warnings && d.warnings.length) html += `<div class="warnbox"><b>Проверьте таблицу (видно только админу):</b><br>${d.warnings.map(esc).join('<br>')}</div>`;
     if (state.tab === 'home') html += homeView();
     else if (state.tab === 'feed') html += feedView();
@@ -4029,8 +4070,9 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     if (d.admin) html += `<div style="margin-top:12px"><button class="btn ghost" id="refresh">Обновить данные из таблицы</button></div>`;
     $app.innerHTML = html;
     bindVer();
-    $app.querySelectorAll('[data-go]').forEach((el) => el.onclick = () => setTab(el.dataset.go));
-    $app.querySelectorAll('[data-calc]').forEach((el) => el.onclick = () => { if (el.dataset.calc) state.calc.pf = el.dataset.calc; setTab('calc'); });
+    $app.querySelectorAll('[data-go]').forEach((el) => el.onclick = () => setTab(el.dataset.go, true));
+    $app.querySelectorAll('[data-back]').forEach((el) => el.onclick = goBack);
+    $app.querySelectorAll('[data-calc]').forEach((el) => el.onclick = () => { if (el.dataset.calc) state.calc.pf = el.dataset.calc; setTab('calc', true); });
     const r = document.getElementById('refresh'); if (r) r.onclick = () => { r.textContent = 'Обновляю…'; load(true); };
     if (state.tab === 'trades') bindTrades();
     if (state.tab === 'calc') bindCalc();
