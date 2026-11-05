@@ -3634,6 +3634,21 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   @media (prefers-reduced-motion: reduce) { .grp-h .chev { transition: none; } }
   .card .seg button.on { background: var(--bg); }
   .tab:focus-visible, .chip:focus-visible, .linkbtn:focus-visible, .quick button:focus-visible, .newsbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* помощь (05.11.2026) */
+  .quick .wide { grid-column: 1 / -1; }
+  .faq-card { padding: 2px 14px; }
+  .faq { border-top: 1px solid var(--line); }
+  .faq:first-child { border-top: 0; }
+  .faq summary { list-style: none; cursor: pointer; padding: 12px 24px 12px 0; font-weight: 600; position: relative; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: ''; position: absolute; right: 4px; top: 50%; width: 7px; height: 7px; border-right: 2px solid var(--hint); border-bottom: 2px solid var(--hint); transform: translateY(-70%) rotate(45deg); transition: transform .15s; }
+  .faq[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+  .faq summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  .faq-a { padding: 0 0 12px; font-size: 14px; }
+  .faq-a p { margin: 0 0 6px; }
+  .faq-a ul, .faq-a ol { margin: 0 0 6px; padding-left: 20px; }
+  textarea { font: inherit; color: var(--text); background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; resize: vertical; }
+  @media (prefers-reduced-motion: reduce) { .faq summary::after { transition: none; } }
 </style>
 </head>
 <body>
@@ -3644,7 +3659,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   </header>
   <nav class="tabs bottom" id="tabs"></nav>
   <main id="app"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></main>
-  <p class="note" style="margin:16px 0 -8px">Версия приложения: 16</p>
+  <p class="note" style="margin:16px 0 -8px"><a href="#" id="help-link">Помощь</a> · Версия приложения: 17</p>
   <p class="note" id="disclaimer">Информация предоставляется одинаково всем участникам и не является индивидуальной инвестиционной рекомендацией. Модельные портфели не учитывают ваши цели, сроки и финансовое положение. Доходность в прошлом не гарантирует доходности в будущем. Результаты рассчитаны по ценам на момент публикации сделок, до налогов; котировки Московской биржи с задержкой до 15 минут.<br><a href="https://bulkacapital.ru/politic" target="_blank" rel="noopener" onclick="try { if (window.Telegram && Telegram.WebApp.initData) { Telegram.WebApp.openLink(this.href); return false; } } catch (e) {}">Политика конфиденциальности</a></p>
 </div>
 <script>
@@ -3670,7 +3685,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 (() => {
   window.__pf = 1;
   // Номер сборки. При каждой выкладке увеличивать здесь и в version.json рядом с index.html (05.11.2026).
-  const APP_VER = 16;
+  const APP_VER = 17;
   // Если на сервере сборка новее, перезагружаемся с новым адресом: так обходим кэш Telegram. Хэш (данные Telegram) сохраняется.
   (function checkVersion() {
     try {
@@ -3712,10 +3727,13 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const dateRu = (iso) => iso ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '';
 
   const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  const state = { data: null, denied: null, tab: 'home', mine: [], notifyOn: true, notifyDirty: false, closed: {}, hist: [], seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
+  const state = { data: null, denied: null, tab: 'home', helpQ: '', ask: { step: '', text: '', seen: '', n: 0, err: '' }, mine: [],notifyOn: true, notifyDirty: false, closed: {}, hist: [], seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
   // Тест открывается ссылкой …/portfolio-app?mode=test (Telegram затирает #hash своими данными) или start_param=test
   const startTest = new URLSearchParams(location.search).get('mode') === 'test' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'test');
   if (startTest) state.tab = 'test';
+  // «Помощь» из бота: …?mode=help
+  const startHelp = new URLSearchParams(location.search).get('mode') === 'help' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'help');
+  if (startHelp) state.tab = 'help';
 
   const $app = document.getElementById('app');
   const $tabs = document.getElementById('tabs');
@@ -3782,14 +3800,17 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 
   function renderDenied(body, status) {
     state.denied = { body, status };
-    // без подписки доступна только вкладка «Тест»
-    $tabs.innerHTML = `<button class="tab ${state.tab === 'test' ? '' : 'on'}" data-t="info">Портфели</button><button class="tab ${state.tab === 'test' ? 'on' : ''}" data-t="test">Тест</button>`;
-    $tabs.querySelectorAll('.tab').forEach((b) => b.onclick = () => { state.tab = b.dataset.t === 'test' ? 'test' : 'overview'; renderDenied(body, status); });
+    // без подписки доступны вкладки «Тест» и «Помощь»
+    const dt = state.tab === 'test' || state.tab === 'help' ? state.tab : 'info';
+    $tabs.innerHTML = [['info', 'Портфели'], ['test', 'Тест'], ['help', 'Помощь']].map(([k, l]) => `<button class="tab ${dt === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('');
+    $tabs.querySelectorAll('.tab').forEach((b) => b.onclick = () => { state.tab = b.dataset.t === 'info' ? 'overview' : b.dataset.t; renderDenied(body, status); window.scrollTo(0, 0); });
     if (state.tab === 'test') { $app.innerHTML = testView(); bindTest(); return; }
+    if (state.tab === 'help') { if (!document.getElementById('help-root')) { $app.innerHTML = helpView(); bindHelp(); } return; }
     const msg = status === 401 ? 'Откройте эту страницу через бота @BulkaPortfolioBot.' : (body.error || 'Нет доступа.');
     $app.innerHTML = `<div class="card center"><h2>Доступ по подписке</h2><p class="muted">${esc(msg)}</p>${body.buyUrl ? `<a class="btn" href="${esc(body.buyUrl)}">Оформить подписку</a>` : ''}
-      <p style="margin-top:18px"><button class="btn ghost" data-go="test">Пройти тест «Какой вы инвестор» →</button></p></div>`;
-    $app.querySelectorAll('[data-go]').forEach((el) => el.onclick = () => { state.tab = 'test'; renderDenied(body, status); window.scrollTo(0, 0); });
+      <p style="margin-top:18px"><button class="btn ghost" data-go="test">Пройти тест «Какой вы инвестор» →</button></p>
+      <p><button class="btn ghost" data-go="help">Оплатили, а доступа нет? Помощь →</button></p></div>`;
+    $app.querySelectorAll('[data-go]').forEach((el) => el.onclick = () => { state.tab = el.dataset.go; renderDenied(body, status); window.scrollTo(0, 0); });
   }
 
   // ---------- Тест «Какой вы инвестор» (тот же, что на сайте bulkacapital.ru/test-investor) ----------
@@ -3876,7 +3897,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     const prev = state.hist.pop(); if (!prev) return;
     state.tab = prev.tab; render(); window.scrollTo(0, prev.y); updateBack();
   }
-  const TAB_NAMES = { home: 'Главная', feed: 'Лента', overview: 'Портфели', trades: 'Сделки', calc: 'Калькулятор', test: 'Тест' };
+  const TAB_NAMES = { home: 'Главная', feed: 'Лента', overview: 'Портфели', trades: 'Сделки', calc: 'Калькулятор', test: 'Тест', help: 'Помощь' };
   const tabName = (t) => TAB_NAMES[t] || (t.startsWith('pf:') ? '«' + t.slice(3) + '»' : 'Назад');
   // кнопка «назад» Telegram в шапке окна (на Android ещё и системная «назад»)
   function updateBack() {
@@ -3897,7 +3918,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   function renderTabs() {
     const pfs = state.data.portfolios;
     const items = [['home', 'Главная'], ['feed', 'Лента'], ['overview', 'Портфели'], ['calc', 'Калькулятор'], ['test', 'Тест']];
-    const valid = ['home', 'feed', 'overview', 'trades', 'calc', 'test', ...pfs.map((p) => 'pf:' + p.key)];
+    const valid = ['home', 'feed', 'overview', 'trades', 'calc', 'test', 'help', ...pfs.map((p) => 'pf:' + p.key)];
     if (!valid.includes(state.tab)) state.tab = 'home';
     const active = state.tab === 'trades' || state.tab.startsWith('pf:') ? 'overview' : state.tab;
     const unread = unreadIds().size;
@@ -4019,7 +4040,8 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
       <button data-tglink="${GROUP_LINK + ASK_TOPIC}"><b>Задать вопрос</b><span>в теме «Обсуждение»</span></button>
       <button data-calc="${mine.length ? esc(mine[0]) : ''}"><b>Калькулятор</b><span>лоты под вашу сумму</span></button>
       <button data-rules="1"><b>Как всё устроено</b><span>правила портфелей</span></button>
-      <button data-go="test"><b>Пройти тест</b><span>подобрать портфель</span></button></div>`;
+      <button data-go="test"><b>Пройти тест</b><span>подобрать портфель</span></button>
+      <button class="wide" data-go="help"><b>Помощь</b><span>ответы на частые вопросы: оплата, доступ, как пользоваться</span></button></div>`;
     return h;
   }
 
@@ -4056,6 +4078,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 
   function render() {
     const d = state.data;
+    if (state.tab === 'help' && document.getElementById('help-root')) { renderTabs(); return; } // свежие данные не стирают набранный вопрос
     if (d.notify && !state.notifyDirty) { state.mine = (d.notify.pf || []).filter((x) => FEED_PFS.includes(x)); state.notifyOn = d.notify.on !== false; }
     document.getElementById('upd').textContent = 'обновлено ' + new Date(d.updatedAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     renderTabs();
@@ -4068,6 +4091,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     else if (state.tab === 'trades') html += tradesView();
     else if (state.tab === 'calc') html += calcView();
     else if (state.tab === 'test') html += testView();
+    else if (state.tab === 'help') html += helpView();
     if (d.admin) html += `<div style="margin-top:12px"><button class="btn ghost" id="refresh">Обновить данные из таблицы</button></div>`;
     $app.innerHTML = html;
     bindVer();
@@ -4078,8 +4102,106 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     if (state.tab === 'trades') bindTrades();
     if (state.tab === 'calc') bindCalc();
     if (state.tab === 'test') bindTest();
+    if (state.tab === 'help') bindHelp();
     bindFeed();
   }
+
+  // ---------- Помощь: база ответов и «Написать нам» (05.11.2026) ----------
+  // Текст базы — из «Помощь — частые вопросы, черновик.md» (скрипт help_build.py), тот же, что в боте.
+  // Кнопка «Написать нам» стоит после всех ответов, а перед отправкой показываем похожие ответы.
+  const HELP = /*HELP*/[{"s":"Доступ и оплата","q":[{"t":"Я оплатил(а), а доступа нет","a":"Откройте бота @BulkaPortfolioBot и пришлите ему одним сообщением e-mail, который вы указали при оплате. Бот найдёт оплату и откроет доступ. Если не сработало, нажмите внизу «Написать нам»."},{"t":"Как попасть в группу","a":"После оплаты бот присылает кнопку «Вступить в группу». Нажмите её и отправьте заявку, она одобрится автоматически."},{"t":"Приложение пишет «Доступ по подписке»","a":"Открывайте приложение из бота кнопкой «📊 Портфели», а не по ссылке из браузера. Ещё нужны две вещи: активная подписка и вступление в группу. Если всё это есть, а приложение не пускает, напишите нам."},{"t":"Где посмотреть, до какого числа оплачено","a":"В боте: кнопка «👤 Моя подписка». Там тариф, статус и дата окончания."},{"t":"Как отменить автопродление","a":"В боте: «👤 Моя подписка» → «Управлять подпиской / отменить автопродление». Сделайте это не позже чем за сутки до списания. Доступ к группе и приложению сохранится до конца оплаченного срока, а продление можно включить обратно в любой момент."},{"t":"Предупредите ли вы о списании","a":"Да. За 3 дня до продления бот напишет. Если списание не прошло, бот тоже сообщит и пришлёт ссылку для оплаты."},{"t":"Как продлить подписку","a":"При автопродлении ничего делать не нужно. Если подписка закончилась, в «Моей подписке» появится кнопка «Продлить»."},{"t":"Как сменить тариф, например с месяца на год","a":"Тариф меняется после окончания оплаченного срока. Отключите автопродление в «Моей подписке», а когда срок закончится, оформите новый тариф кнопкой «💳 Оформить подписку» в боте."}]},{"s":"Портфели","q":[{"t":"Чем отличаются «Опора», «Баланс» и «Рост»","a":"Сроком и тем, насколько сильное временное падение портфель может пережить. «Опора» самая спокойная, «Рост» самый рискованный, «Баланс» посередине. Горизонт и допустимая просадка написаны в карточке каждого портфеля. Если не знаете, что выбрать, пройдите тест на вкладке «Тест», это 2 минуты."},{"t":"Что такое «Фонды» и «Полная»","a":"Это две версии одного портфеля. В «Фондах» каждая часть собрана через биржевые фонды: бумаг меньше и хватает небольшой суммы. В «Полной» вместо фондов конкретные облигации и акции, оптимально от 400 000 ₽. Переключатель версий вверху экрана, приложение запоминает ваш выбор."},{"t":"Как читать состав","a":"Бумаги собраны в группы по классам: облигации, акции, золото и так далее. Стрелка слева от названия группы сворачивает и разворачивает её. Жирная цифра показывает долю бумаги сейчас, серая показывает целевую долю.\nМетка «Тест» значит, что для покупки неквалифицированному инвестору нужно пройти тест у брокера. Рядом указана альтернатива, которую можно купить без теста. Метка «Квал» значит, что бумагу могут купить только квалифицированные инвесторы."},{"t":"Что показывают доходность и бенчмарк","a":"Доходность считается с запуска портфеля. Бенчмарк собран из индексов Мосбиржи в тех же долях, что и стратегия. Он показывает, обгоняет ли портфель рынок. «Условный капитал» показывает, сколько стоил бы портфель сейчас при стартовой сумме."},{"t":"Как повторить портфель","a":"1. Откройте «Калькулятор».\n2. Выберите портфель и версию, введите свою сумму.\n3. Калькулятор покажет, сколько лотов каждой бумаги купить.\n4. Купите бумаги у своего брокера.\n\nПриложение к брокеру не подключено, сделки вы делаете сами."},{"t":"Калькулятор пишет, что не хватает на 1 лот","a":"Значит, на вашу сумму часть бумаг не купить даже по одному лоту. Для небольших сумм удобнее версия «Фонды»."},{"t":"Как узнать о новой сделке","a":"Каждую сделку мы публикуем в группе, в теме «Опора · сделки», «Баланс · сделки» или «Рост · сделки», с объяснением. Она же сразу появляется в ленте приложения, а бот присылает уведомление."},{"t":"Когда пересматривают портфели","a":"Плановая проверка проходит 15 января, апреля, июля и октября. Вне графика портфель меняем, если доля какого-то класса ушла от цели больше чем на 5 процентных пунктов или у бумаги что-то случилось: отменили дивиденды, понизили рейтинг. Купоны и дивиденды вкладываем обратно, когда свободных денег в портфеле больше 3%, или на плановой проверке."}]},{"s":"Приложение","q":[{"t":"Что где находится","a":"- «Главная»: ваши портфели, свежие публикации, ближайшие события, быстрые кнопки.\n- «Лента»: все публикации группы, с фильтрами по типу и по портфелю.\n- «Портфели»: составы, доходность, сделки.\n- «Калькулятор»: сколько лотов купить на вашу сумму.\n- «Тест»: подобрать портфель."},{"t":"Как получать уведомления только по своим портфелям","a":"На «Главной» в блоке «Мои портфели» отметьте нужные, можно несколько. Бот будет присылать сделки только по ним, а сводки и отчёты по всем. То же самое можно сделать в боте кнопкой «🔔 Уведомления». Там же уведомления выключаются совсем."},{"t":"Как обсудить публикацию","a":"Под постом в ленте есть кнопка «Обсудить в группе». Она открывает этот пост в Telegram."},{"t":"Приложение показывает старые данные или выглядит иначе, чем у других","a":"Закройте приложение и откройте снова из бота. Новые версии оно подхватывает само."}]},{"s":"Вопросы и расписание","q":[{"t":"Где задать вопрос по методологии или по бумаге из портфеля","a":"В группе, в теме «Обсуждение». Вопросы, присланные до вторника, разбираем в вопрос-ответе в последний четверг месяца."},{"t":"Можно ли получить личную рекомендацию","a":"Нет. Портфели одинаковые для всех, решения о сделках вы принимаете сами. Разбирать личные ситуации и чужие портфели мы не можем."},{"t":"Что и когда выходит","a":"- Каждая пятница, вечер: «Неделя за 5 минут».\n- Первый понедельник месяца: отчёт месяца и календарь выплат.\n- Второй понедельник: макро-светофор.\n- Вторая и четвёртая среда: разбор бумаги.\n- Третья среда: обучающий выпуск.\n- Последний четверг: вопрос-ответ.\n- День решения ЦБ: разбор решения."}]}]/*/HELP*/;
+  const ASK_HOURS = 'обычно в рабочие дни с 10:00 до 18:00 по Москве';
+  const HELP_STOP = new Set('как что где это мне мой моя мою мои не нет и в во на с со по для а я у ли из к о об или же бы то так при за от до ни вы вас вам ваш если уже еще там тут почему когда можно нужно надо есть был была было чтобы такое такой какой какая'.split(' '));
+  const helpWords = (s) => String(s).toLowerCase().replace(/ё/g, 'е').split(/[^a-zа-я0-9]+/).filter((w) => w.length > 1 && !HELP_STOP.has(w));
+  const helpStem = (w) => w.slice(0, Math.max(3, Math.min(5, w.length - 1))); // грубая основа: «тарифа» и «тариф» → «тари…»
+  const HELP_IDX = HELP.flatMap((s) => s.q.map((q) => ({ t: q.t, a: q.a, tw: helpWords(q.t), aw: helpWords(q.a) })));
+  function helpFind(text, max) {
+    const qs = [...new Set(helpWords(text).map(helpStem))];
+    const has = (ws, st) => ws.some((w) => w.startsWith(st));
+    // редкое слово весит больше частого («квал» важнее «портфеля»), совпадение в вопросе вдвое важнее, чем в ответе
+    const wt = qs.map((st) => { const df = HELP_IDX.filter((x) => has(x.tw, st) || has(x.aw, st)).length; return df ? Math.log(1 + HELP_IDX.length / df) : 0; });
+    const res = HELP_IDX.map((x) => ({ x, sc: qs.reduce((n, st, i) => n + (has(x.tw, st) ? 2 : has(x.aw, st) ? 1 : 0) * wt[i], 0) })).filter((r) => r.sc > 0);
+    const best = Math.max(0, ...res.map((r) => r.sc));
+    return res.filter((r) => r.sc >= best * 0.5).sort((a, b) => b.sc - a.sc).slice(0, max).map((r) => r.x);
+  }
+  function helpAnswer(a) {
+    const out = []; let list = null;
+    for (const line of a.split('\n')) {
+      const m = line.match(/^(- |\d+\. )(.*)$/);
+      if (m) { const tag = m[1] === '- ' ? 'ul' : 'ol'; if (!list || list.tag !== tag) { list = { tag, li: [] }; out.push(list); } list.li.push(m[2]); }
+      else { list = null; if (line.trim()) out.push(line); }
+    }
+    return out.map((b) => typeof b === 'string' ? `<p>${esc(b)}</p>` : `<${b.tag}>${b.li.map((x) => `<li>${esc(x)}</li>`).join('')}</${b.tag}>`).join('');
+  }
+  const helpItem = (x, open) => `<details class="faq"${open ? ' open' : ''}><summary>${esc(x.t)}</summary><div class="faq-a">${helpAnswer(x.a)}</div></details>`;
+  const helpSections = () => HELP.map((s) => `<h3>${esc(s.s)}</h3><div class="card faq-card">${s.q.map((x) => helpItem(x)).join('')}</div>`).join('');
+  const helpAskCard = (t) => `<div class="card" style="margin-top:14px"><b>${t}</b><p class="muted" style="margin:4px 0 10px">Опишите, что не получается. Вопрос придёт нам, ответ пришлёт бот, ${ASK_HOURS}.</p><button class="btn ghost" data-ask="write">✍️ Написать нам</button></div>`;
+  function helpList() {
+    const q = state.helpQ.trim();
+    if (!q) return helpSections() + helpAskCard('Не нашли ответ?');
+    const r = helpFind(q, 8);
+    if (r.length) return `<div class="card faq-card" style="margin-top:10px">${r.map((x) => helpItem(x, r.length === 1)).join('')}</div>` + helpAskCard('Не то, что искали?');
+    return `<div class="card center" style="margin-top:10px;padding:20px 14px"><p class="muted" style="margin:0">По запросу «${esc(q)}» ничего не нашлось. Попробуйте другими словами или посмотрите разделы ниже.</p></div>` + helpSections() + helpAskCard('Не нашли ответ?');
+  }
+  function askView() {
+    const a = state.ask, back = `<button class="backlink" data-ask="back">← К ответам</button>`;
+    if (a.step === 'write') return back + `<div class="card"><h2>Написать нам</h2><p class="muted" style="margin:0 0 10px">Опишите, что вы делали и что не получается. Сначала покажем похожие ответы из базы: вдруг решение уже есть.</p>
+      <textarea id="ask-t" rows="5" maxlength="1500" placeholder="Например: оплатила подписку, а бот пишет, что подписки нет">${esc(a.text)}</textarea>
+      <div style="margin-top:10px"><button class="btn" data-ask="check">Дальше</button></div></div>`;
+    if (a.step === 'check') {
+      const r = helpFind(a.text, 3);
+      if (!r.length) return back + `<div class="card"><p class="muted" style="margin:0">Похожего ответа в базе нет. Отправим ваш вопрос нам.</p></div>
+        <div class="row" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn" data-ask="send">Отправить вопрос</button><button class="btn ghost" data-ask="write">Изменить текст</button></div>`;
+      return back + `<div class="card"><h2>Посмотрите, возможно, ответ здесь</h2><div class="faq-card" style="padding:0">${r.map((x, i) => helpItem(x, i === 0)).join('')}</div></div>
+        <div class="row" style="justify-content:flex-start;flex-wrap:wrap"><button class="btn ghost" data-ask="found">Ответ нашёлся</button><button class="btn" data-ask="send">Ответа нет, отправить вопрос</button></div>`;
+    }
+    if (a.step === 'sending') return `<div class="card center"><p>Отправляю…</p></div>`;
+    if (a.step === 'done') return `<div class="card center"><h2>Вопрос №${esc(a.n)} отправлен</h2><p class="muted">Ответ пришлёт бот @BulkaPortfolioBot в чат с ним, ${ASK_HOURS}.</p><button class="btn ghost" data-ask="found">← К ответам</button></div>`;
+    return back + `<div class="card center"><p>${esc(a.err)}</p><button class="btn" data-ask="send">Попробовать ещё раз</button></div>`; // error
+  }
+  const helpInner = () => state.ask.step ? askView() : `<h2 style="margin:4px 2px 10px">Помощь</h2>
+    <input id="help-q" type="search" placeholder="Поиск: оплата, тариф, калькулятор…" value="${esc(state.helpQ)}" autocomplete="off" aria-label="Поиск по ответам">
+    <div id="help-list">${helpList()}</div>`;
+  const helpView = () => `<div id="help-root">${helpInner()}</div>`;
+  function bindHelp() {
+    const q = document.getElementById('help-q');
+    if (q) q.oninput = () => { state.helpQ = q.value; document.getElementById('help-list').innerHTML = helpList(); bindHelpBtns(); };
+    const t = document.getElementById('ask-t');
+    if (t) t.oninput = () => { state.ask.text = t.value; };
+    bindHelpBtns();
+  }
+  function bindHelpBtns() { document.querySelectorAll('#help-root [data-ask]').forEach((el) => el.onclick = () => askGo(el.dataset.ask)); }
+  function helpPaint() { const root = document.getElementById('help-root'); if (!root) return; root.innerHTML = helpInner(); bindHelp(); window.scrollTo(0, 0); }
+  function askGo(step) {
+    const a = state.ask;
+    if (step === 'check' && a.text.trim().length < 5) { const t = document.getElementById('ask-t'); if (t) { t.placeholder = 'Напишите хотя бы пару слов о том, что не получается'; t.focus(); } return; }
+    if (step === 'check') a.seen = helpFind(a.text, 3).map((x) => x.t).join('; ');
+    if (step === 'send') return askSend();
+    if (step === 'found') { a.text = ''; a.seen = ''; }
+    a.step = step === 'back' || step === 'found' ? '' : step;
+    helpPaint();
+  }
+  async function askSend() {
+    const a = state.ask;
+    if (!API_URL || !tg || !tg.initData) { a.step = 'error'; a.err = 'Отправить вопрос можно, если открыть приложение из бота @BulkaPortfolioBot.'; return helpPaint(); }
+    a.step = 'sending'; helpPaint();
+    try {
+      // POST без заголовков: простой запрос без предварительной проверки CORS, Apps Script принимает его в doPost
+      const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'ask', initData: tg.initData, text: a.text.trim(), seen: a.seen }) });
+      const j = await r.json();
+      if (!j.ok) throw Object.assign(new Error(j.error || 'Не получилось отправить.'), { srv: 1 });
+      Object.assign(a, { step: 'done', n: j.n, text: '', seen: '' });
+      try { if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); } catch (e) {}
+    } catch (e) { a.step = 'error'; a.err = e.srv ? e.message : 'Нет связи. Проверьте интернет и попробуйте ещё раз.'; }
+    helpPaint();
+  }
+  document.getElementById('help-link').onclick = (e) => {
+    e.preventDefault();
+    if (state.data) return setTab('help', true);
+    state.tab = 'help';
+    if (state.denied) renderDenied(state.denied.body, state.denied.status); else { $app.innerHTML = helpView(); bindHelp(); }
+    window.scrollTo(0, 0);
+  };
 
   function spark(hist, w = 96, h = 32) {
     if (!hist || hist.length < 2) return '';
@@ -4239,6 +4361,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   }
 
   if (startTest) { $app.innerHTML = testView(); bindTest(); } // тест виден сразу, пока грузятся данные
+  if (startHelp) { $app.innerHTML = helpView(); bindHelp(); } // помощь тоже
   prefGet_('seen').then((seen) => {
     if (seen && state.seen == null) state.seen = Number(seen);
     if (state.data) render();
