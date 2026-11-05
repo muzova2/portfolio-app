@@ -3644,7 +3644,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   </header>
   <nav class="tabs bottom" id="tabs"></nav>
   <main id="app"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></main>
-  <p class="note" style="margin:16px 0 -8px">Версия приложения: 14</p>
+  <p class="note" style="margin:16px 0 -8px">Версия приложения: 16</p>
   <p class="note" id="disclaimer">Информация предоставляется одинаково всем участникам и не является индивидуальной инвестиционной рекомендацией. Модельные портфели не учитывают ваши цели, сроки и финансовое положение. Доходность в прошлом не гарантирует доходности в будущем. Результаты рассчитаны по ценам на момент публикации сделок, до налогов; котировки Московской биржи с задержкой до 15 минут.<br><a href="https://bulkacapital.ru/politic" target="_blank" rel="noopener" onclick="try { if (window.Telegram && Telegram.WebApp.initData) { Telegram.WebApp.openLink(this.href); return false; } } catch (e) {}">Политика конфиденциальности</a></p>
 </div>
 <script>
@@ -3670,7 +3670,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 (() => {
   window.__pf = 1;
   // Номер сборки. При каждой выкладке увеличивать здесь и в version.json рядом с index.html (05.11.2026).
-  const APP_VER = 15;
+  const APP_VER = 16;
   // Если на сервере сборка новее, перезагружаемся с новым адресом: так обходим кэш Telegram. Хэш (данные Telegram) сохраняется.
   (function checkVersion() {
     try {
@@ -3861,7 +3861,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     $app.querySelectorAll('.qt-opt').forEach((b) => b.onclick = () => { qt.answers[qt.step] = +b.dataset.i; if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); qt.step++; rerender(); });
     const bk = document.getElementById('qt-back'); if (bk) bk.onclick = () => { qt.step--; rerender(); };
     const ag = document.getElementById('qt-again'); if (ag) ag.onclick = () => { qt.step = -1; qt.answers = []; rerender(); };
-    const sub = document.getElementById('qt-sub'); if (sub) sub.onclick = () => { if (tg && tg.initData) tg.close(); else location.href = 'https://t.me/BulkaPortfolioBot'; };
+    const sub = document.getElementById('qt-sub'); if (sub) sub.onclick = () => { const u = 'https://t.me/BulkaPortfolioBot?start=about'; if (tg && tg.initData && tg.openTelegramLink) tg.openTelegramLink(u); else location.href = u; }; // после теста → «Что входит» в боте
   }
 
   // push = переход «вглубь» (из списка в портфель и т.п.): запоминаем экран и прокрутку, чтобы вернуться
