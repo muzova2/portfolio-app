@@ -3578,6 +3578,50 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   @keyframes sh { to { background-position: -200% 0; } }
   a { color: var(--link); }
   .spark { width: 96px; height: 32px; }
+  /* нижняя панель вкладок, главная и лента (05.11.2026) */
+  .wrap { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .tabs.bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 6px 4px calc(8px + env(safe-area-inset-bottom)); }
+  .tabs.bottom .tab { background: none; color: var(--hint); border-radius: 10px; padding: 4px 0; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
+  .tabs.bottom .tab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tabs.bottom .tab.on { background: none; color: var(--accent); font-weight: 600; }
+  .tab .cnt { position: absolute; top: 0; left: calc(50% + 7px); min-width: 16px; height: 16px; border-radius: 8px; background: var(--neg); color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; margin-bottom: 8px; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; border: 0; background: var(--bg); color: var(--text); padding: 7px 12px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .chip.on { background: var(--accent); color: var(--accent-text); }
+  .chips.small { margin-bottom: 12px; }
+  .chips.small .chip { padding: 5px 10px; font-size: 12px; background: transparent; border: 1px solid var(--line); }
+  .chips.small .chip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .post-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--hint); margin-bottom: 6px; }
+  .post-meta .sp { flex: 1; }
+  .kind { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 2px 7px; border-radius: 6px; background: var(--bg2); color: var(--text); }
+  .kind.deal { color: var(--pos); background: rgba(31, 157, 85, .16); background: color-mix(in srgb, var(--pos) 16%, transparent); }
+  .kind.video { color: var(--neg); background: rgba(214, 69, 69, .14); background: color-mix(in srgb, var(--neg) 14%, transparent); }
+  .kind.report, .kind.review { color: var(--accent); background: rgba(47, 111, 222, .14); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .newmark { color: #c98f00; font-weight: 700; }
+  .pf-tag { font-size: 11px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line); color: var(--hint); }
+  .post-title { font-size: 16px; font-weight: 650; margin: 0; line-height: 1.3; }
+  .post-text { white-space: pre-line; overflow-wrap: anywhere; font-size: 14px; margin: 6px 0; }
+  .post-text.cut { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .linkbtn { border: 0; background: none; color: var(--link); font: inherit; font-size: 14px; padding: 0; cursor: pointer; }
+  .post-actions { margin-top: 10px; }
+  .vid { aspect-ratio: 16 / 9; max-width: 100%; border-radius: 10px; background: linear-gradient(135deg, #2b4d8f, #0b1630); color: #fff; display: grid; place-items: center; position: relative; margin: 8px 0; cursor: pointer; }
+  .vid .play { width: 52px; height: 52px; border-radius: 50%; background: rgba(255, 255, 255, .18); display: grid; place-items: center; }
+  .vid .play svg { width: 22px; height: 22px; fill: #fff; margin-left: 3px; }
+  .vid small { position: absolute; left: 10px; bottom: 8px; font-size: 12px; opacity: .85; }
+  .ev { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); align-items: baseline; }
+  .ev:first-child { border-top: 0; padding-top: 0; }
+  .ev .d { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .ev .d small { display: block; font-weight: 500; color: var(--hint); font-size: 11px; }
+  .ev.today .d { color: var(--accent); }
+  .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .quick button { background: var(--bg); border: 0; border-radius: var(--radius); padding: 12px; text-align: left; font: inherit; color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .quick b { font-size: 14px; }
+  .quick span { font-size: 12px; color: var(--hint); }
+  .newsbtn { display: flex; flex-direction: column; gap: 4px; width: 100%; border: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+  .card .seg, .card .btn.ghost { background: var(--bg2); }
+  .card .seg button.on { background: var(--bg); }
+  .tab:focus-visible, .chip:focus-visible, .linkbtn:focus-visible, .quick button:focus-visible, .newsbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -3586,7 +3630,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     <h1>Модельные портфели</h1>
     <span id="upd" class="muted"></span>
   </header>
-  <nav class="tabs" id="tabs"></nav>
+  <nav class="tabs bottom" id="tabs"></nav>
   <main id="app"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></main>
   <p class="note" id="disclaimer">Информация предоставляется одинаково всем участникам и не является индивидуальной инвестиционной рекомендацией. Модельные портфели не учитывают ваши цели, сроки и финансовое положение. Доходность в прошлом не гарантирует доходности в будущем. Результаты рассчитаны по ценам на момент публикации сделок, до налогов; котировки Московской биржи с задержкой до 15 минут.<br><a href="https://bulkacapital.ru/politic" target="_blank" rel="noopener" onclick="try { if (window.Telegram && Telegram.WebApp.initData) { Telegram.WebApp.openLink(this.href); return false; } } catch (e) {}">Политика конфиденциальности</a></p>
 </div>
@@ -3638,7 +3682,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const dateRu = (iso) => iso ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '';
 
   const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  const state = { data: null, denied: null, tab: store.get('tab', 'overview'), ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
+  const state = { data: null, denied: null, tab: 'home', mine: null, mineSrc: '', seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
   // Тест открывается ссылкой …/portfolio-app?mode=test (Telegram затирает #hash своими данными) или start_param=test
   const startTest = new URLSearchParams(location.search).get('mode') === 'test' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'test');
   if (startTest) state.tab = 'test';
@@ -3761,6 +3805,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     let score = 0; const notes = [];
     QT.forEach((q, i) => { const o = q.o[qt.answers[i]]; if (i >= 2) score += o[1]; if (o[2] && !notes.includes(o[2])) notes.push(o[2]); });
     const type = QT_TYPES.find((t) => score >= t.min && score <= t.max) || QT_TYPES[0];
+    if (state.mineSrc !== 'me' && FEED_PFS[type.lvl - 1] && state.mine !== FEED_PFS[type.lvl - 1]) setMine(FEED_PFS[type.lvl - 1], 'test');
     const member = !!state.data;
     let h = notes.length ? `<div class="card"><h2>Прежде чем инвестировать</h2>${notes.map((n) => `<p>${QT_NOTES[n]}</p>`).join('')}</div>` : '';
     h += `<div class="card"><div class="muted">Ваш тип отношения к риску</div><div class="big" style="margin:4px 0">${type.name}</div><p style="margin:0">${type.text}</p>
@@ -3789,13 +3834,23 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     const sub = document.getElementById('qt-sub'); if (sub) sub.onclick = () => { if (tg && tg.initData) tg.close(); else location.href = 'https://t.me/BulkaPortfolioBot'; };
   }
 
-  function setTab(t) { state.tab = t; if (t !== 'test') store.set('tab', t); render(); window.scrollTo(0, 0); if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
+  function setTab(t) { if (t === 'feed') markSeen(); state.tab = t; render(); window.scrollTo(0, 0); if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
 
+  const ICONS = {
+    home: '<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
+    feed: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+    overview: '<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></svg>',
+    calc: '<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>',
+    test: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+  };
   function renderTabs() {
     const pfs = state.data.portfolios;
-    const items = [['overview', 'Обзор'], ...pfs.map((p) => ['pf:' + p.key, p.title]), ['trades', 'Сделки'], ['calc', 'Калькулятор'], ['test', 'Тест']];
-    if (!items.some(([k]) => k === state.tab)) state.tab = 'overview';
-    $tabs.innerHTML = items.map(([k, l]) => `<button class="tab ${state.tab === k ? 'on' : ''}" data-t="${esc(k)}">${esc(l)}</button>`).join('');
+    const items = [['home', 'Главная'], ['feed', 'Лента'], ['overview', 'Портфели'], ['calc', 'Калькулятор'], ['test', 'Тест']];
+    const valid = ['home', 'feed', 'overview', 'trades', 'calc', 'test', ...pfs.map((p) => 'pf:' + p.key)];
+    if (!valid.includes(state.tab)) state.tab = 'home';
+    const active = state.tab === 'trades' || state.tab.startsWith('pf:') ? 'overview' : state.tab;
+    const unread = unreadIds().size;
+    $tabs.innerHTML = items.map(([k, l]) => `<button class="tab ${active === k ? 'on' : ''}" data-t="${esc(k)}" aria-label="${esc(l)}">${ICONS[k]}${esc(l)}${k === 'feed' && unread ? `<span class="cnt">${unread}</span>` : ''}</button>`).join('');
     $tabs.querySelectorAll('.tab').forEach((b) => b.onclick = () => setTab(b.dataset.t));
   }
 
@@ -3809,13 +3864,134 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const V = (p) => p.versions[state.ver] || p.versions['Полная'] || p.versions['Фонды'] || Object.values(p.versions)[0];
   const fallbackNote = (p) => !p.versions[state.ver] && Object.keys(p.versions).length ? `<div class="muted" style="margin-top:6px">Версия «${state.ver === 'Полная' ? 'Полная' : 'Фонды'}» пока не опубликована — показана «${Object.keys(p.versions)[0]}»</div>` : '';
 
+  // ---------- Главная и лента (05.11.2026) ----------
+  const FEED_PFS = ['Опора', 'Баланс', 'Рост'];
+  const GROUP_LINK = 'https://t.me/c/4498544809/';
+  const ASK_TOPIC = 44;
+  const KIND = { deal: 'Сделка', week: 'Сводка', report: 'Отчёт', review: 'Разбор', video: 'Видео', sost: 'Состав', ann: 'Объявление', rules: 'Правила', guide: 'Инструкция' };
+  const KINDS = [['all', 'Все'], ['deal', 'Сделки'], ['week', 'Сводки'], ['report', 'Отчёты'], ['review', 'Разборы'], ['video', 'Видео'], ['sost', 'Составы'], ['ann', 'Объявления'], ['guide', 'Инструкции'], ['rules', 'Правила']];
+  const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+  const MON = ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  const todayIso = () => { const d = new Date(Date.now() + 3 * 3600e3); return d.toISOString().slice(0, 10); }; // день по Москве
+  const dayMon = (iso) => +iso.slice(8, 10) + ' ' + MON[+iso.slice(5, 7) - 1];
+  const feedOf = () => (state.data && state.data.feed) || [];
+  const postLink = (p) => GROUP_LINK + (p.t ? p.t + '/' : '') + p.id;
+  function openTg(url) { try { if (tg && tg.openTelegramLink) return tg.openTelegramLink(url); } catch (e) {} window.open(url, '_blank'); }
+
+  // настройки зрителя на устройстве: «мой портфель» и что уже прочитано в ленте
+  const UID = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || 'web';
+  function prefGet_(k) {
+    const local = store.get('pref:' + k + ':' + UID, '');
+    if (!ds) return Promise.resolve(local);
+    return new Promise((res) => {
+      let done = false;
+      const t = setTimeout(() => { done = true; res(local); }, 800);
+      try { ds.getItem('pref:' + k, (err, v) => { if (done) return; done = true; clearTimeout(t); res(!err && v ? v : local); }); }
+      catch (e) { done = true; clearTimeout(t); res(local); }
+    });
+  }
+  function prefSet_(k, v) { store.set('pref:' + k + ':' + UID, String(v)); if (ds) try { ds.setItem('pref:' + k, String(v), () => {}); } catch (e) {} }
+  function setMine(k, src) { state.mine = k; state.mineSrc = src; prefSet_('mine', k); prefSet_('mineSrc', src); }
+
+  // новое = опубликовано после последнего захода в ленту (при первом заходе — за последнюю неделю)
+  function unreadIds() {
+    const f = feedOf();
+    if (state.seen == null) { const wk = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10); return new Set(f.filter((p) => p.date >= wk).map((p) => p.id)); }
+    return new Set(f.filter((p) => p.id > state.seen).map((p) => p.id));
+  }
+  const isNew = (p) => (state.newIds || unreadIds()).has(p.id);
+  function markSeen() {
+    const f = feedOf(); if (!f.length) return;
+    const mx = Math.max(...f.map((p) => p.id));
+    if (state.seen == null || mx > state.seen) { state.newIds = unreadIds(); state.seen = mx; prefSet_('seen', mx); }
+  }
+
+  function postCard(p) {
+    const open = state.open[p.id];
+    const pf = p.pf.length >= 3 ? '<span class="pf-tag">все портфели</span>' : p.pf.map((x) => `<span class="pf-tag">${esc(x)}</span>`).join(' ');
+    return `<div class="card"><div class="post-meta"><span class="kind ${esc(p.kind)}">${esc(KIND[p.kind] || p.kind)}</span><span>${dayMon(p.date)}</span>${isNew(p) ? '<span class="newmark">● новое</span>' : ''}<span class="sp"></span>${pf}</div>
+      <p class="post-title">${esc(p.title)}</p>
+      ${p.video ? `<div class="vid" data-tglink="${esc(postLink(p))}"><div class="play"><svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg></div><small>Видео · смотреть в группе</small></div>` : ''}
+      ${p.text ? `<div class="post-text ${open ? '' : 'cut'}">${esc(p.text)}</div><button class="linkbtn" data-open="${p.id}">${open ? 'Свернуть' : 'Читать полностью'}</button>` : ''}
+      <div class="post-actions"><button class="btn ghost" data-tglink="${esc(postLink(p))}">${p.video ? 'Смотреть в группе' : 'Обсудить в группе'}</button></div></div>`;
+  }
+
+  function mineCard() {
+    const d = state.data;
+    const p = state.mine && d.portfolios.find((x) => x.key === state.mine);
+    const sw = `<div class="seg" style="margin:0">${d.portfolios.map((x) => `<button class="${p && x.key === p.key ? 'on' : ''}" data-mine="${esc(x.key)}">${esc(x.title)}</button>`).join('')}</div>`;
+    if (!p) return `<div class="card"><h2>Какой портфель ваш?</h2><p class="muted" style="margin-top:0">Выберите сами или пройдите тест: результат появится здесь.</p>${sw}
+      <div style="margin-top:10px"><button class="btn ghost" data-go="test">Пройти тест «Какой вы инвестор»</button></div></div>`;
+    const v = V(p), b = v && (v.bench || p.bench);
+    return `<div class="card"><div class="row" style="align-items:baseline"><h2 style="margin:0">«${esc(p.title)}»</h2><span class="muted">${state.mineSrc === 'test' ? 'по тесту' : 'выбран вами'}</span></div>
+      <div class="tiles" style="margin:10px 0">
+        <div class="tile" style="background:var(--bg2)"><div class="muted">С запуска${v && (v.start || p.start) ? ' (' + dateRu(v.start || p.start) + ')' : ''}</div><div class="v ${v ? cls(v.returnPct) : ''}">${v && v.started ? pct(v.returnPct) : '—'}</div></div>
+        <div class="tile" style="background:var(--bg2)"><div class="muted">Бенчмарк${p.benchLabel ? ' · ' + esc(p.benchLabel) : ''}</div><div class="v ${b ? cls(b.returnPct) : ''}">${b && v.started ? pct(b.returnPct) : '—'}</div></div>
+      </div>
+      <div class="row">${sw}<button class="btn" data-go="pf:${esc(p.key)}">Состав</button></div>
+      <div class="muted" style="margin-top:8px">${state.ver === 'Фонды' ? 'Версия «Фонды»' : 'Полная версия'}, ${esc(document.getElementById('upd').textContent)}</div></div>`;
+  }
+
+  function homeView() {
+    const d = state.data, f = feedOf(), mine = state.mine;
+    const name = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name;
+    const fresh = f.filter((x) => !mine || x.pf.includes(mine)).slice(0, 3);
+    const unread = unreadIds().size;
+    const today = todayIso();
+    const evs = (d.events || []).filter((e) => !mine || e.pf.includes(mine)).slice(0, 4);
+    let h = name ? `<p class="muted" style="margin:0 2px 8px">Добрый день, ${esc(name)}</p>` : '';
+    h += `<h3 style="margin-top:0">Мой портфель</h3>` + mineCard();
+    if (fresh.length) {
+      h += `<h3>Что нового${unread ? ' · ' + unread + ' с прошлого раза' : ''}</h3>` + fresh.map((x) => `<button class="card newsbtn" data-jump="${x.id}">
+        <span class="post-meta" style="margin:0"><span class="kind ${esc(x.kind)}">${esc(KIND[x.kind] || x.kind)}</span><span>${dayMon(x.date)}</span>${isNew(x) ? '<span class="newmark">● новое</span>' : ''}</span>
+        <b style="font-size:15px">${esc(x.title)}</b></button>`).join('') + `<button class="btn ghost" data-go="feed" style="margin-bottom:10px">Вся лента</button>`;
+    }
+    if (evs.length) {
+      h += `<h3>Ближайшие события${mine ? ' по «' + esc(mine) + '»' : ''}</h3><div class="card">` + evs.map((e) => `<div class="ev ${e.d === today ? 'today' : ''}">
+        <div class="d">${+e.d.slice(8, 10)}.${e.d.slice(5, 7)}<small>${e.d === today ? 'сегодня' : WD[new Date(e.d + 'T12:00:00').getDay()]}</small></div><div>${esc(e.t)}</div></div>`).join('') + '</div>';
+    }
+    h += `<h3>Быстро</h3><div class="quick">
+      <button data-tglink="${GROUP_LINK + ASK_TOPIC}"><b>Задать вопрос</b><span>в теме «Обсуждение»</span></button>
+      <button data-calc="${mine ? esc(mine) : ''}"><b>Калькулятор</b><span>лоты под вашу сумму</span></button>
+      <button data-rules="1"><b>Как всё устроено</b><span>правила портфелей</span></button>
+      <button data-go="test"><b>Пройти тест</b><span>подобрать портфель</span></button></div>`;
+    return h;
+  }
+
+  function feedView() {
+    const f = feedOf();
+    if (!f.length) return `<div class="card center"><p>Здесь появятся все публикации группы.</p></div>`;
+    const kinds = KINDS.filter(([k]) => k === 'all' || f.some((p) => p.kind === k));
+    if (!kinds.some(([k]) => k === state.kind)) state.kind = 'all';
+    const list = f.filter((p) => (state.kind === 'all' || p.kind === state.kind) && (state.pff === 'all' || p.pf.includes(state.pff)));
+    return `<p class="muted" style="margin:0 2px 10px">Все публикации группы. Обсуждение каждого поста в группе.</p>
+      <div class="chips">${kinds.map(([k, l]) => `<button class="chip ${state.kind === k ? 'on' : ''}" data-kind="${k}">${l}</button>`).join('')}</div>
+      <div class="chips small">${[['all', 'Все портфели'], ...FEED_PFS.map((k) => [k, k])].map(([k, l]) => `<button class="chip ${state.pff === k ? 'on' : ''}" data-pff="${esc(k)}">${esc(l)}</button>`).join('')}</div>` +
+      (list.length ? list.map(postCard).join('') : `<div class="card center"><p class="muted">Пока ничего нет. Посты по этому фильтру появятся, как только мы их опубликуем.</p></div>`);
+  }
+
+  function bindFeed() {
+    $app.querySelectorAll('[data-mine]').forEach((el) => el.onclick = () => { setMine(el.dataset.mine, 'me'); render(); });
+    $app.querySelectorAll('[data-kind]').forEach((el) => el.onclick = () => { state.kind = el.dataset.kind; render(); });
+    $app.querySelectorAll('[data-pff]').forEach((el) => el.onclick = () => { state.pff = el.dataset.pff; render(); });
+    $app.querySelectorAll('[data-open]').forEach((el) => el.onclick = () => { const id = +el.dataset.open; state.open[id] = !state.open[id]; render(); });
+    $app.querySelectorAll('[data-tglink]').forEach((el) => el.onclick = () => openTg(el.dataset.tglink));
+    $app.querySelectorAll('[data-rules]').forEach((el) => el.onclick = () => { state.kind = 'rules'; state.pff = 'all'; setTab('feed'); });
+    $app.querySelectorAll('[data-jump]').forEach((el) => el.onclick = () => {
+      const id = +el.dataset.jump; state.kind = 'all'; state.pff = 'all'; state.open[id] = true; setTab('feed');
+      const b = $app.querySelector(`[data-open="${id}"]`); if (b) b.closest('.card').scrollIntoView({ block: 'start' });
+    });
+  }
+
   function render() {
     const d = state.data;
     document.getElementById('upd').textContent = 'обновлено ' + new Date(d.updatedAt).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     renderTabs();
     let html = '';
     if (d.admin && d.warnings && d.warnings.length) html += `<div class="warnbox"><b>Проверьте таблицу (видно только админу):</b><br>${d.warnings.map(esc).join('<br>')}</div>`;
-    if (state.tab === 'overview') html += overview();
+    if (state.tab === 'home') html += homeView();
+    else if (state.tab === 'feed') html += feedView();
+    else if (state.tab === 'overview') html += overview();
     else if (state.tab.startsWith('pf:')) html += portfolioView(d.portfolios.find((p) => 'pf:' + p.key === state.tab));
     else if (state.tab === 'trades') html += tradesView();
     else if (state.tab === 'calc') html += calcView();
@@ -3829,6 +4005,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     if (state.tab === 'trades') bindTrades();
     if (state.tab === 'calc') bindCalc();
     if (state.tab === 'test') bindTest();
+    bindFeed();
   }
 
   function spark(hist, w = 96, h = 32) {
@@ -3856,7 +4033,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
         ${classBar(v.classes, v.cashWeight, false)}${fallbackNote(p)}
       </div>`;
     }
-    h += `<div class="card"><h2>Как пользоваться</h2><ol style="margin:0;padding-left:18px"><li>Пройдите <a href="#" data-go="test">тест «Какой вы инвестор»</a> и прочитайте описания стратегий.</li><li>Сами решите, за каким портфелем наблюдать. Доступны все три.</li><li>В «Калькуляторе» посчитайте лоты на свою сумму.</li><li>Новые сделки появляются в группе и в разделе «Сделки».</li></ol></div>`;
+    h += `<div class="card"><h2>Как пользоваться</h2><ol style="margin:0;padding-left:18px"><li>Пройдите <a href="#" data-go="test">тест «Какой вы инвестор»</a> и прочитайте описания стратегий.</li><li>Сами решите, за каким портфелем наблюдать. Доступны все три.</li><li>В «Калькуляторе» посчитайте лоты на свою сумму.</li><li>Новые сделки и разборы появляются в «Ленте» и в группе. Все сделки подряд — в <a href="#" data-go="trades">журнале сделок</a>.</li></ol></div>`;
     return h;
   }
 
@@ -3916,6 +4093,8 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
       </div>`).join('')}
       <div class="pos-item row"><span>Кэш</span><span class="num"><b>${fmt(v.cashWeight, 1)}%</b> <span class="muted">/ ${fmt(v.cashTarget, 0)}%</span></span></div>
       <p class="muted" style="margin:8px 0 0">Жирным — доля сейчас, серым — целевая. Метка «Тест» — нужен тест у брокера для неквалов.</p></div>`;
+    const posts = feedOf().filter((x) => x.pf.includes(p.key) && ['deal', 'sost', 'review', 'video'].includes(x.kind)).slice(0, 5);
+    if (posts.length) h += `<h3>Сделки и разборы по «${esc(p.title)}»</h3>` + posts.map(postCard).join('');
     const recent = state.data.trades.filter((t) => t.pf === p.key && t.ver === (p.versions[state.ver] ? state.ver : (p.versions['Полная'] ? 'Полная' : 'Фонды'))).slice(0, 5);
     if (recent.length) h += `<div class="card"><div class="row"><h2 style="margin:0">Последние сделки</h2><a href="#" data-go="trades">все</a></div>${tradeList(recent)}</div>`;
     return h;
@@ -3978,6 +4157,11 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   }
 
   if (startTest) { $app.innerHTML = testView(); bindTest(); } // тест виден сразу, пока грузятся данные
+  Promise.all([prefGet_('mine'), prefGet_('mineSrc'), prefGet_('seen')]).then(([m, src, seen]) => {
+    if (m && !state.mine) { state.mine = m; state.mineSrc = src || 'me'; }
+    if (seen && state.seen == null) state.seen = Number(seen);
+    if (state.data) render();
+  });
   load();
 })();
 </script>
