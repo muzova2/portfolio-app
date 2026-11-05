@@ -3621,10 +3621,14 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   .newsbtn { display: flex; flex-direction: column; gap: 4px; width: 100%; border: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
   .card .seg, .card .btn.ghost { background: var(--bg2); }
   .grp-h { display: flex; align-items: center; gap: 8px; padding: 16px 0 4px; font-size: 15px; }
-  .grp-h:first-of-type { padding-top: 2px; }
   .grp-h .dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
   .grp-h .num { margin-left: auto; font-size: 13px; }
-  .grp-h + .pos-item { border-top: 0; padding-top: 4px; }
+  .grp-h { width: 100%; border: 0; background: none; color: var(--text); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+  .grp-h .chev { color: var(--hint); font-size: 12px; transition: transform .15s; }
+  .grp-h.closed .chev { transform: rotate(-90deg); }
+  .grp-h:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  .grp-b > .pos-item:first-child { border-top: 0; padding-top: 4px; }
+  @media (prefers-reduced-motion: reduce) { .grp-h .chev { transition: none; } }
   .card .seg button.on { background: var(--bg); }
   .tab:focus-visible, .chip:focus-visible, .linkbtn:focus-visible, .quick button:focus-visible, .newsbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
@@ -3687,7 +3691,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   const dateRu = (iso) => iso ? iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4) : '';
 
   const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  const state = { data: null, denied: null, tab: 'home', mine: [], notifyOn: true, notifyDirty: false, seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
+  const state = { data: null, denied: null, tab: 'home', mine: [], notifyOn: true, notifyDirty: false, closed: {}, seen: null, newIds: null, kind: 'all', pff: 'all', open: {}, ver: store.get('ver', 'Полная'), tradesPf: 'all', calc: { pf: null, amount: store.get('amount', '100000') } };
   // Тест открывается ссылкой …/portfolio-app?mode=test (Telegram затирает #hash своими данными) или start_param=test
   const startTest = new URLSearchParams(location.search).get('mode') === 'test' || !!(tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param === 'test');
   if (startTest) state.tab = 'test';
@@ -3990,6 +3994,11 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   }
 
   function bindFeed() {
+    $app.querySelectorAll('[data-grp]').forEach((el) => el.onclick = () => {
+      const k = el.dataset.grp, shut = !state.closed[k]; state.closed[k] = shut;
+      el.classList.toggle('closed', shut); el.setAttribute('aria-expanded', String(!shut));
+      if (el.nextElementSibling) el.nextElementSibling.hidden = shut;
+    });
     $app.querySelectorAll('[data-mine]').forEach((el) => el.onclick = () => { toggleMine(el.dataset.mine); render(); });
     $app.querySelectorAll('[data-notify]').forEach((el) => el.onclick = () => { saveNotify(state.mine, state.notifyOn === false); render(); });
     $app.querySelectorAll('[data-kind]').forEach((el) => el.onclick = () => { state.kind = el.dataset.kind; render(); });
@@ -4114,13 +4123,13 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     </div>`;
     h += `<div class="card"><h2>Распределение по классам</h2>${classBar(v.classes, v.cashWeight)}</div>`;
     h += `<div class="card"><h2>Динамика</h2>${lineChart(v.history)}</div>`;
-    h += `<div class="card"><h2>Состав</h2>${posGroups(v).map(([c, gi, list]) => `<div class="grp-h"><span class="dot" style="background:${colorOf(c.cls, gi)}"></span><b>${esc(c.cls)}</b><span class="num"><b>${fmt(c.weight, 1)}%</b> <span class="muted">/ ${fmt(c.target, 0)}%</span></span></div>` + list.map((x) => `
+    h += `<div class="card"><h2>Состав</h2>${posGroups(v).map(([c, gi, list], n) => { const shut = !!state.closed[c.cls]; return `<button class="grp-h ${shut ? 'closed' : ''}" data-grp="${esc(c.cls)}" aria-expanded="${!shut}" style="${n ? '' : 'padding-top:2px'}"><span class="chev">▾</span><span class="dot" style="background:${colorOf(c.cls, gi)}"></span><b>${esc(c.cls)}</b><span class="muted" style="font-size:12px">${list.length}</span><span class="num"><b>${fmt(c.weight, 1)}%</b> <span class="muted">/ ${fmt(c.target, 0)}%</span></span></button><div class="grp-b" ${shut ? 'hidden' : ''}>` + list.map((x) => `
       <div class="pos-item">
         <div class="row"><div style="min-width:0"><span class="tk">${esc(x.ticker)}</span>${accessBadge(x.access)}<div class="muted" style="overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</div></div>
         <div style="text-align:right"><div class="num"><b>${fmt(x.weight, 1)}%</b> <span class="muted">/ ${fmt(x.target, 0)}%</span></div><div class="num muted">${x.price ? rub(x.price) : 'нет цены'}${x.pnlPct != null ? ` · <span class="${cls(x.pnlPct)}">${pct(x.pnlPct * 100)}</span>` : ''}</div></div></div>
         <div class="wbar"><i style="width:${Math.min(100, x.weight / Math.max(x.target, x.weight, 1) * 100)}%"></i><b style="left:${Math.min(100, x.target / Math.max(x.target, x.weight, 1) * 100)}%"></b></div>
         ${x.alt && /тест|квал/i.test(x.access) ? `<div class="muted" style="margin-top:6px">Альтернатива без теста: ${esc(x.alt)}</div>` : ''}
-      </div>`).join('')).join('')}
+      </div>`).join('') + '</div>'; }).join('')}
       <div class="pos-item row"><span>Кэш</span><span class="num"><b>${fmt(v.cashWeight, 1)}%</b> <span class="muted">/ ${fmt(v.cashTarget, 0)}%</span></span></div>
       <p class="muted" style="margin:8px 0 0">Жирным — доля сейчас, серым — целевая. Метка «Тест» — нужен тест у брокера для неквалов.</p></div>`;
     const posts = feedOf().filter((x) => x.pf.includes(p.key) && ['deal', 'sost', 'review', 'video'].includes(x.kind)).slice(0, 5);
