@@ -3670,7 +3670,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   </header>
   <nav class="tabs bottom" id="tabs"></nav>
   <main id="app"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></main>
-  <p class="note" style="margin:16px 0 -8px"><a href="#" id="help-link">Помощь</a> · Версия приложения: 20</p>
+  <p class="note" style="margin:16px 0 -8px"><a href="#" id="help-link">Помощь</a> · Версия приложения: <span id="app-ver">22</span></p>
   <p class="note" id="disclaimer">Информация предоставляется одинаково всем участникам и не является индивидуальной инвестиционной рекомендацией. Модельные портфели не учитывают ваши цели, сроки и финансовое положение. Доходность в прошлом не гарантирует доходности в будущем. Результаты рассчитаны по ценам на момент публикации сделок, до налогов; котировки Московской биржи с задержкой до 15 минут.<br><a href="https://bulkacapital.ru/politic" target="_blank" rel="noopener" onclick="try { if (window.Telegram && Telegram.WebApp.initData) { Telegram.WebApp.openLink(this.href); return false; } } catch (e) {}">Политика конфиденциальности</a></p>
 </div>
 <script>
@@ -3697,6 +3697,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   window.__pf = 1;
   // Номер сборки. При каждой выкладке увеличивать здесь и в version.json рядом с index.html (05.11.2026).
   const APP_VER = 22;
+  try { document.getElementById('app-ver').textContent = APP_VER; } catch (e) {} // 25.11.2026: номер внизу берётся из APP_VER
   // Если на сервере сборка новее, перезагружаемся с новым адресом: так обходим кэш Telegram. Хэш (данные Telegram) сохраняется.
   (function checkVersion() {
     try {
