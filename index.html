@@ -3696,7 +3696,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 (() => {
   window.__pf = 1;
   // Номер сборки. При каждой выкладке увеличивать здесь и в version.json рядом с index.html (05.11.2026).
-  const APP_VER = 21;
+  const APP_VER = 22;
   // Если на сервере сборка новее, перезагружаемся с новым адресом: так обходим кэш Telegram. Хэш (данные Telegram) сохраняется.
   (function checkVersion() {
     try {
@@ -3708,6 +3708,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
         const q = new URLSearchParams(location.search);
         if (Number(q.get('v')) >= j.v) return; // уже открыт адрес новой сборки, второй раз не перезагружаем
         q.set('v', j.v);
+        q.set('t', Date.now()); // 25.11.2026: уникальный адрес — Telegram не возьмёт страницу из своей памяти
         location.replace(location.pathname + '?' + q.toString() + location.hash);
       }).catch(() => {});
     } catch (e) {}
