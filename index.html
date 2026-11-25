@@ -3696,7 +3696,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
 (() => {
   window.__pf = 1;
   // Номер сборки. При каждой выкладке увеличивать здесь и в version.json рядом с index.html (05.11.2026).
-  const APP_VER = 20;
+  const APP_VER = 21;
   // Если на сервере сборка новее, перезагружаемся с новым адресом: так обходим кэш Telegram. Хэш (данные Telegram) сохраняется.
   (function checkVersion() {
     try {
@@ -3714,6 +3714,17 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   })();
   // Адрес веб-приложения Google Apps Script (…/exec). Пусто — если страницу отдаёт Node-сервер.
   const API_URL = 'https://script.google.com/macros/s/AKfycbwnGrrvAfBTOVG9mgwy1tUf9G1n7zBie2rqnsPjbtoSrqFFsCNnUgFbcG3hRYul-KUHwQ/exec'.startsWith('__') ? '' : 'https://script.google.com/macros/s/AKfycbwnGrrvAfBTOVG9mgwy1tUf9G1n7zBie2rqnsPjbtoSrqFFsCNnUgFbcG3hRYul-KUHwQ/exec';
+  // 25.11.2026: сначала напрямую в Яндекс (быстро), при сетевом сбое — старым путём через Google
+  const API_YC = 'https://functions.yandexcloud.net/d4eqejh5t8kk2etk4gun';
+  function apiFetch(qs, opts) {
+    const viaGoogle = () => fetch(API_URL + qs, opts);
+    if (!API_URL) return viaGoogle();
+    const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const t = ctl ? setTimeout(() => ctl.abort(), 12000) : 0;
+    return fetch(API_YC + qs, Object.assign({}, opts || {}, ctl ? { signal: ctl.signal } : {}))
+      .then((r) => { clearTimeout(t); if (!r.ok) throw new Error('yc ' + r.status); return r; })
+      .catch(() => { clearTimeout(t); return viaGoogle(); });
+  }
   const tg = window.Telegram && window.Telegram.WebApp;
   if (tg && tg.initData) {
     document.documentElement.setAttribute('data-tg', '1');
@@ -3775,7 +3786,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     const initData = tg ? tg.initData : '';
     // запрос уходит сразу, пока читаем сохранённое
     const req = (API_URL
-      ? fetch(`${API_URL}?action=${refresh ? 'refresh' : 'data'}&initData=${encodeURIComponent(initData)}`)
+      ? apiFetch(`?action=${refresh ? 'refresh' : 'data'}&initData=${encodeURIComponent(initData)}`)
       : fetch(refresh ? '/api/refresh' : '/api/data', { headers: { 'X-Init-Data': initData } }))
       .then((r) => r.json().then((b) => [r, b]));
     req.catch(() => {});
@@ -3981,7 +3992,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
   function saveNotify(pf, on) {
     state.mine = pf; state.notifyOn = on; state.notifyDirty = true;
     if (state.data) state.data.notify = { pf, on };
-    if (API_URL) fetch(`${API_URL}?action=notify&pf=${encodeURIComponent(pf.join(','))}&on=${on ? 1 : 0}&initData=${encodeURIComponent(tg ? tg.initData : '')}`).catch(() => {});
+    if (API_URL) apiFetch(`?action=notify&pf=${encodeURIComponent(pf.join(','))}&on=${on ? 1 : 0}&initData=${encodeURIComponent(tg ? tg.initData : '')}`).catch(() => {});
   }
   function toggleMine(k) {
     const m = state.mine.includes(k) ? state.mine.filter((x) => x !== k) : state.mine.concat(k);
@@ -4203,7 +4214,7 @@ try { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } catch (
     a.step = 'sending'; helpPaint();
     try {
       // POST без заголовков: простой запрос без предварительной проверки CORS, Apps Script принимает его в doPost
-      const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'ask', initData: tg.initData, text: a.text.trim(), seen: a.seen }) });
+      const r = await apiFetch('', { method: 'POST', body: JSON.stringify({ action: 'ask', initData: tg.initData, text: a.text.trim(), seen: a.seen }) });
       const j = await r.json();
       if (!j.ok) throw Object.assign(new Error(j.error || 'Не получилось отправить.'), { srv: 1 });
       Object.assign(a, { step: 'done', n: j.n, text: '', seen: '' });
